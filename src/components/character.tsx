@@ -4,7 +4,6 @@ import {
   CapsuleCollider,
   RapierRigidBody,
   RigidBody,
-  useRapier,
 } from "@react-three/rapier";
 import { useRef } from "react";
 import { Vector3 } from "three";
@@ -14,7 +13,6 @@ const SPEED = 3;
 
 export default function Character() {
   const { camera } = useThree();
-  const { world, rapier } = useRapier();
   const playerRef = useRef<RapierRigidBody | null>(null);
   const direction = useRef(new Vector3());
   const rightDirection = useRef(new Vector3());
@@ -71,8 +69,13 @@ export default function Character() {
   });
 
   return (
-    <RigidBody colliders={false} ref={playerRef} lockRotations>
-      <CapsuleCollider args={[0.5, 0.4]} />
+    <RigidBody
+      ref={playerRef}
+      lockRotations
+      colliders={false}
+      position={[0, 1, 0]}
+    >
+      <CapsuleCollider args={[0.5, 0.5]} />
     </RigidBody>
   );
 }
