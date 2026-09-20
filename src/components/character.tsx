@@ -5,18 +5,33 @@ import {
   RapierRigidBody,
   RigidBody,
 } from "@react-three/rapier";
-import { useRef } from "react";
-import { Vector3 } from "three";
+import { useRef, type RefObject } from "react";
+import { Group, Raycaster, Vector3 } from "three";
 import type { Controls } from "./controller";
 
-const SPEED = 3;
+const SPEED = 4;
 
-export default function Character() {
+type Props = {
+  interactableObjects: RefObject<Group | null>;
+};
+
+export default function Character({ interactableObjects }: Props) {
   const { camera } = useThree();
+
   const playerRef = useRef<RapierRigidBody | null>(null);
-  const direction = useRef(new Vector3());
+
+  // Full camera direction — includes Y.
+  // Use this for raycasting.
+  const cameraDirection = useRef(new Vector3());
+
+  // Flattened camera direction — Y is always 0.
+  // Use this for movement.
+  const movementDirection = useRef(new Vector3());
+
   const rightDirection = useRef(new Vector3());
   const movement = useRef(new Vector3());
+  const raycast = useRef(new Raycaster());
+
   const forward = useKeyboardControls<keyof Controls>((state) => state.forward);
   const left = useKeyboardControls<keyof Controls>((state) => state.left);
   const right = useKeyboardControls<keyof Controls>((state) => state.right);
@@ -27,21 +42,32 @@ export default function Character() {
 
   useFrame(() => {
     const player = playerRef.current;
+    const ray = raycast.current;
 
     if (player) {
+      const cameraDir = cameraDirection.current;
+      const moveDir = movementDirection.current;
       const rightDir = rightDirection.current;
       const mov = movement.current;
-      const dir = direction.current;
+
+      // Get the REAL direction the camera is looking.
+      // Do not flatten this — the ray needs vertical direction too.
+      camera.getWorldDirection(cameraDir);
+
+      // Copy the camera direction for movement,
+      // then remove its vertical component.
+      moveDir.copy(cameraDir);
+      moveDir.y = 0;
+      moveDir.normalize();
 
       mov.set(0, 0, 0);
-      camera.getWorldDirection(dir);
-      dir.y = 0;
-      dir.normalize();
 
-      rightDir.crossVectors(dir, camera.up).normalize();
+      // Right direction should also be based on our
+      // flattened movement direction.
+      rightDir.crossVectors(moveDir, camera.up).normalize();
 
-      if (forward) mov.add(dir);
-      if (backward) mov.sub(dir);
+      if (forward) mov.add(moveDir);
+      if (backward) mov.sub(moveDir);
       if (left) mov.sub(rightDir);
       if (right) mov.add(rightDir);
 
@@ -56,17 +82,38 @@ export default function Character() {
       player.setLinvel(
         {
           x: mov.x,
-          y: jump && velocity.y <= 0 ? 5 : velocity.y,
+          y: jump ? 5 : velocity.y,
           z: mov.z,
         },
         true,
       );
 
       const position = player.translation();
+
       camera.position.set(position.x, position.y + 1, position.z);
+
+      // Raycasting
+      ray.near = 0;
+      ray.far = 5;
+
+      ray.set(camera.position, cameraDir);
+
+      const intersects = ray.intersectObjects(
+        interactableObjects.current?.children ?? [],
+        true,
+      );
+
+      if (intersects.length > 0) {
+        for (const i of intersects) {
+          if (i.object.userData.interactable) {
+            // set state here
+          }
+        }
+      }
     }
+
     return null;
-  });
+  }, -2);
 
   return (
     <RigidBody
