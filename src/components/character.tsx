@@ -7,6 +7,7 @@ import {
 } from "@react-three/rapier";
 import { useRef, type RefObject } from "react";
 import { Group, Raycaster, Vector3 } from "three";
+import { useInteractableState } from "../stores";
 import type { Controls } from "./controller";
 
 const SPEED = 4;
@@ -17,15 +18,12 @@ type Props = {
 
 export default function Character({ interactableObjects }: Props) {
   const { camera } = useThree();
-
+  const { setInteractableObject, name, resetInteractableObject } =
+    useInteractableState();
   const playerRef = useRef<RapierRigidBody | null>(null);
 
-  // Full camera direction — includes Y.
-  // Use this for raycasting.
   const cameraDirection = useRef(new Vector3());
 
-  // Flattened camera direction — Y is always 0.
-  // Use this for movement.
   const movementDirection = useRef(new Vector3());
 
   const rightDirection = useRef(new Vector3());
@@ -39,6 +37,9 @@ export default function Character({ interactableObjects }: Props) {
     (state) => state.backward,
   );
   const jump = useKeyboardControls<keyof Controls>((state) => state.jump);
+  const interact = useKeyboardControls<keyof Controls>(
+    (state) => state.interact,
+  );
 
   useFrame(() => {
     const player = playerRef.current;
@@ -103,12 +104,28 @@ export default function Character({ interactableObjects }: Props) {
         true,
       );
 
+      if (interact) {
+        console.log("interact", intersects);
+      }
+
       if (intersects.length > 0) {
         for (const i of intersects) {
           if (i.object.userData.interactable) {
             // set state here
+            if (name !== i.object.userData.name) {
+              setInteractableObject(
+                i.object.userData.name,
+                i.object.userData.type,
+              );
+              if (interact) {
+                console.log("interacting", i.object);
+              }
+            }
           }
         }
+        // run state only once for updates
+      } else if (name !== "" && intersects.length === 0) {
+        resetInteractableObject();
       }
     }
 

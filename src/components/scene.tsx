@@ -1,5 +1,6 @@
 import Controller from "./controller";
 import Game from "./game";
+import Hud from "./hud";
 import "./scene.css";
 
 export default function Scene() {
@@ -8,6 +9,7 @@ export default function Scene() {
       <Controller>
         <Game />
       </Controller>
+      <Hud />
     </div>
   );
 }

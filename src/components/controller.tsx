@@ -10,6 +10,7 @@ const Controls = {
   left: "left",
   right: "right",
   jump: "jump",
+  interact: "interact",
 } as const;
 
 export type Controls = typeof Controls;
@@ -26,6 +27,7 @@ export default function Controller({
       { name: Controls.left, keys: ["ArrowLeft", "KeyA"] },
       { name: Controls.right, keys: ["ArrowRight", "KeyD"] },
       { name: Controls.jump, keys: ["Space", "KeyJ"] },
+      { name: Controls.interact, keys: ["KeyE"] },
     ];
   }, []);
 
