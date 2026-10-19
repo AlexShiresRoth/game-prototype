@@ -7,7 +7,7 @@ import {
 } from "@react-three/rapier";
 import { useRef, type RefObject } from "react";
 import { Group, Raycaster, Vector3 } from "three";
-import { useInteractableState } from "../stores";
+import { useInteractableState, type InteractableObjectData } from "../stores";
 import type { Controls } from "./controller";
 
 const SPEED = 4;
@@ -16,9 +16,11 @@ type Props = {
   interactableObjects: RefObject<Group | null>;
 };
 
+// TODO - we only want to call interact once
+// TODO - we need to chec
 export default function Character({ interactableObjects }: Props) {
   const { camera } = useThree();
-  const { setInteractableObject, name, resetInteractableObject } =
+  const { setInteractableObject, resetInteractableObject, interactableObject } =
     useInteractableState();
   const playerRef = useRef<RapierRigidBody | null>(null);
 
@@ -37,6 +39,8 @@ export default function Character({ interactableObjects }: Props) {
     (state) => state.backward,
   );
   const jump = useKeyboardControls<keyof Controls>((state) => state.jump);
+  // TODO - we need to somehow call the interact function only once
+  // perhaps a check to see if the user is already interacting with an object
   const interact = useKeyboardControls<keyof Controls>(
     (state) => state.interact,
   );
@@ -99,32 +103,27 @@ export default function Character({ interactableObjects }: Props) {
 
       ray.set(camera.position, cameraDir);
 
+      if (interact) {
+        interactableObject.action();
+      }
+
       const intersects = ray.intersectObjects(
         interactableObjects.current?.children ?? [],
         true,
       );
 
-      if (interact) {
-        console.log("interact", intersects);
-      }
-
       if (intersects.length > 0) {
-        for (const i of intersects) {
-          if (i.object.userData.interactable) {
-            // set state here
-            if (name !== i.object.userData.name) {
-              setInteractableObject(
-                i.object.userData.name,
-                i.object.userData.type,
-              );
-              if (interact) {
-                console.log("interacting", i.object);
-              }
-            }
-          }
-        }
+        const userData = intersects[0].object
+          .userData as InteractableObjectData;
+        setInteractableObject({
+          name: userData.name,
+          type: userData.type,
+          id: userData.id,
+          actionType: userData.actionType,
+          action: userData.action,
+        });
         // run state only once for updates
-      } else if (name !== "" && intersects.length === 0) {
+      } else {
         resetInteractableObject();
       }
     }
