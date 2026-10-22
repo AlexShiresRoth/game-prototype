@@ -1,4 +1,4 @@
-import { useInteractableState } from "../stores";
+import { useInteractableState } from "@/stores";
 import "./hud.module.css";
 
 export default function Hud() {

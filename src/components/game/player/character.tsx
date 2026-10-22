@@ -1,3 +1,6 @@
+import type { Controls } from "@/controllers/keyboard";
+import { useInteractableState } from "@/stores";
+import type { InteractableObjectData } from "@/types/interaction";
 import { useKeyboardControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
@@ -7,8 +10,6 @@ import {
 } from "@react-three/rapier";
 import { useRef, type RefObject } from "react";
 import { Group, Raycaster, Vector3 } from "three";
-import { useInteractableState, type InteractableObjectData } from "../stores";
-import type { Controls } from "./controller";
 
 const SPEED = 4;
 
@@ -16,8 +17,6 @@ type Props = {
   interactableObjects: RefObject<Group | null>;
 };
 
-// TODO - we only want to call interact once
-// TODO - we need to chec
 export default function Character({ interactableObjects }: Props) {
   const { camera } = useThree();
   const { setInteractableObject, resetInteractableObject, interactableObject } =
@@ -39,11 +38,6 @@ export default function Character({ interactableObjects }: Props) {
     (state) => state.backward,
   );
   const jump = useKeyboardControls<keyof Controls>((state) => state.jump);
-  // TODO - we need to somehow call the interact function only once
-  // perhaps a check to see if the user is already interacting with an object
-  const interact = useKeyboardControls<keyof Controls>(
-    (state) => state.interact,
-  );
 
   useFrame(() => {
     const player = playerRef.current;
@@ -83,7 +77,7 @@ export default function Character({ interactableObjects }: Props) {
 
       const velocity = player.linvel();
 
-      // TODO figure out if player collided with ground
+      // TODO figure out if player collided with ground for jumping
       player.setLinvel(
         {
           x: mov.x,
@@ -103,27 +97,26 @@ export default function Character({ interactableObjects }: Props) {
 
       ray.set(camera.position, cameraDir);
 
-      if (interact) {
-        interactableObject.action();
-      }
-
       const intersects = ray.intersectObjects(
         interactableObjects.current?.children ?? [],
         true,
       );
 
+      // only add interactable objects if they are not already in use
       if (intersects.length > 0) {
         const userData = intersects[0].object
           .userData as InteractableObjectData;
-        setInteractableObject({
-          name: userData.name,
-          type: userData.type,
-          id: userData.id,
-          actionType: userData.actionType,
-          action: userData.action,
-        });
-        // run state only once for updates
-      } else {
+        if (interactableObject.id !== userData.id) {
+          setInteractableObject({
+            name: userData.name,
+            type: userData.type,
+            id: userData.id,
+            actionType: userData.actionType,
+            action: userData.action,
+          });
+        }
+      }
+      if (intersects.length === 0 && interactableObject.id !== -1) {
         resetInteractableObject();
       }
     }

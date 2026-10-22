@@ -1,14 +1,5 @@
+import type { ActionType, InteractableObjectData } from "@/types/interaction";
 import { create } from "zustand";
-
-export type ActionType = "pickup" | "use" | "open" | "hold";
-
-export type InteractableObjectData = {
-  name: string;
-  type: string;
-  id: number;
-  actionType: ActionType;
-  action: () => void;
-};
 
 type InteractableObjectState = {
   interactableObject: InteractableObjectData;

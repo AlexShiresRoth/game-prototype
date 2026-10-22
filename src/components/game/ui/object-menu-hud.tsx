@@ -5,9 +5,13 @@ const COLUMNS = 6;
 
 // TODO - i'm not sure this is the best idea or if we should open
 // an overlay menu and pause the game
-export default function ObjectMenuHUD() {
+
+type Props = {
+  objectPosition: [number, number, number];
+};
+export default function ObjectMenuHUD({ objectPosition }: Props) {
   return (
-    <Html position={[0, 1, 0]}>
+    <Html position={objectPosition} center>
       <div className="object-menu-hud">
         <h1>Object Menu HUD</h1>
         {Array.from({ length: ROWS }).map((_, index) => (
