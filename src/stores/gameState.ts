@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ActionType = "pickup" | "use" | "open";
+export type ActionType = "pickup" | "use" | "open" | "hold";
 
 export type InteractableObjectData = {
   name: string;

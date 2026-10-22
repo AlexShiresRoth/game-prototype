@@ -9,6 +9,7 @@ const ActionsMap = {
   pickup: "Pick up",
   use: "Use",
   open: "Open",
+  hold: "Hold",
 } as const satisfies Record<ActionType, string>;
 
 export default function InteractionHUD({ actionType }: Props) {
