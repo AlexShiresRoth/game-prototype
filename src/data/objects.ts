@@ -1,19 +1,4 @@
-export type GameObject = {
-  id: number;
-  name: string;
-  geometry: "box" | "sphere" | "cylinder";
-  color: string;
-  position: [number, number, number];
-  geometryArgs?: [number, number, number];
-  rigidBodyType:
-    | "fixed"
-    | "dynamic"
-    | "kinematicPosition"
-    | "kinematicVelocity";
-  interaction: {
-    type: "open" | "hold" | "activate" | "drag" | "pickup" | "use";
-  };
-};
+import type { GameObject } from "@/types/interaction";
 
 export const INTERACTABLE_OBJECTS: GameObject[] = [
   {

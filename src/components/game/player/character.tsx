@@ -1,6 +1,6 @@
 import type { Controls } from "@/controllers/keyboard";
 import { useInteractableState } from "@/stores";
-import type { InteractableObjectData } from "@/types/interaction";
+import type { GameObject } from "@/types/interaction";
 import { useKeyboardControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
@@ -104,19 +104,12 @@ export default function Character({ interactableObjects }: Props) {
 
       // only add interactable objects if they are not already in use
       if (intersects.length > 0) {
-        const userData = intersects[0].object
-          .userData as InteractableObjectData;
-        if (interactableObject.id !== userData.id) {
-          setInteractableObject({
-            name: userData.name,
-            type: userData.type,
-            id: userData.id,
-            actionType: userData.actionType,
-            action: userData.action,
-          });
+        const gameObject = intersects[0].object.userData as GameObject;
+        if (interactableObject?.id !== gameObject.id) {
+          setInteractableObject(gameObject);
         }
       }
-      if (intersects.length === 0 && interactableObject.id !== -1) {
+      if (intersects.length === 0 && interactableObject?.id !== -1) {
         resetInteractableObject();
       }
     }
